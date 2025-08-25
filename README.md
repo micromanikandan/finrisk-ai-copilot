@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo.png" alt="FinRisk AI Labs" width="140"/>
+<img src="assets/logo.png" alt="FinRisk AI Labs" width="140" url="https://www.linkedin.com/in/manikandanbala/"/>
 
 # **FinRisk Investigation Copilot**
 
@@ -153,15 +153,6 @@ poetry run python -m app.main
 * [ ] Field‑level encryption + tokenization (AES‑GCM, KMS in prod)
 * [ ] Immutable audit log (append‑only + S3 object lock)
 * [ ] Data residency per region/cell
-
----
-
-## 🗺️ Roadmap
-
-**M0 (Weeks 0–2)**: Docker baseline, Case Service, Kafka ingestion, Search v0, Copilot skeleton
-**M1 (Weeks 3–8)**: Redis cache, OpenSearch hybrid search, Feast online store, SHAP
-**M2 (Weeks 9–16)**: ClickHouse analytics, Neo4j entity links, vLLM gateway
-**M3 (Weeks 17–24)**: Multi‑region cells, DR runbooks, cost metering & dashboards
 
 ---
 
