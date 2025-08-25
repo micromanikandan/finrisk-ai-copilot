@@ -166,9 +166,9 @@ PRs welcome! Please open an issue with context (service, topic, tenant/cell). Se
 
 Built by **Manikandan (“Mani”) — Founder & AI Architect, FinRisk AI Labs**.
 
-* LinkedIn: \<your‑profile‑url>
+* LinkedIn: https://www.linkedin.com/in/manikandanbala/
 * Company Page: FinRisk AI Labs
-* GitHub: \<repo‑url>
+* GitHub: https://github.com/micromanikandan/finrisk-ai-copilot
 
 ---
 
