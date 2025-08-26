@@ -1,0 +1,118 @@
+[tool.poetry]
+name = "finrisk-copilot-orchestrator"
+version = "1.0.0"
+description = "FinRisk AI Copilot - LangGraph orchestrator with MCP tools for AI agents"
+authors = ["Manikandan Bala <manikandan@finrisk.ai>"]
+readme = "README.md"
+packages = [{include = "app"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.104.1"
+uvicorn = {extras = ["standard"], version = "^0.24.0"}
+pydantic = "^2.5.0"
+
+# LangChain and LangGraph
+langchain = "^0.1.0"
+langgraph = "^0.0.20"
+langchain-openai = "^0.0.5"
+langchain-anthropic = "^0.1.0"
+langchain-community = "^0.0.10"
+
+# MCP (Model Context Protocol)
+mcp = "^0.4.0"
+
+# AI and ML
+openai = "^1.6.1"
+anthropic = "^0.8.1"
+tiktoken = "^0.5.2"
+
+# Vector stores and embeddings
+chromadb = "^0.4.22"
+sentence-transformers = "^2.2.2"
+
+# Tools and utilities
+httpx = "^0.25.2"
+aiofiles = "^23.2.0"
+jsonschema = "^4.20.0"
+pydantic-settings = "^2.1.0"
+tenacity = "^8.2.3"
+
+# Database and caching
+sqlalchemy = "^2.0.23"
+asyncpg = "^0.29.0"
+alembic = "^1.13.1"
+redis = "^5.0.1"
+
+# Messaging
+aiokafka = "^0.10.0"
+
+# Monitoring and logging
+structlog = "^23.2.0"
+prometheus-client = "^0.19.0"
+opentelemetry-api = "^1.21.0"
+opentelemetry-sdk = "^1.21.0"
+opentelemetry-instrumentation-fastapi = "^0.42b0"
+
+# Security
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+
+# Web and API
+python-multipart = "^0.0.6"
+websockets = "^12.0"
+
+# Data processing
+pandas = "^2.1.4"
+numpy = "^1.25.2"
+
+# CLI
+click = "^8.1.7"
+rich = "^13.7.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.3"
+pytest-asyncio = "^0.21.1"
+pytest-cov = "^4.1.0"
+black = "^23.11.0"
+isort = "^5.12.0"
+flake8 = "^6.1.0"
+mypy = "^1.7.1"
+pre-commit = "^3.6.0"
+jupyter = "^1.0.0"
+
+[tool.poetry.group.test.dependencies]
+testcontainers = "^3.7.1"
+factory-boy = "^3.3.0"
+faker = "^20.1.0"
+pytest-mock = "^3.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["app"]
+
+[tool.mypy]
+python_version = "3.11"
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+asyncio_mode = "auto"

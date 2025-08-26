@@ -1,0 +1,258 @@
+spring:
+  application:
+    name: case-service
+  
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+    
+  r2dbc:
+    url: r2dbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:case_service}
+    username: ${POSTGRES_USER:case_user}
+    password: ${POSTGRES_PASSWORD:case_dev_password_2024}
+    pool:
+      initial-size: 10
+      max-size: 50
+      max-idle-time: 30m
+      validation-query: SELECT 1
+
+  flyway:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:case_service}
+    user: ${POSTGRES_USER:case_user}
+    password: ${POSTGRES_PASSWORD:case_dev_password_2024}
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 8
+          min-idle: 0
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      retries: 3
+      batch-size: 16384
+      linger-ms: 10
+      buffer-memory: 33554432
+      acks: all
+      enable-idempotence: true
+    consumer:
+      group-id: case-service
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      isolation-level: read_committed
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OIDC_ISSUER_URL:http://localhost:8080/realms/finrisk}
+          audiences: ${OIDC_AUDIENCE:finrisk-copilot}
+
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+server:
+  port: 8080
+  shutdown: graceful
+  
+  # Enable HTTP/2
+  http2:
+    enabled: true
+
+  # Compression
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+
+  # Error handling
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: false
+
+# Management endpoints for health checks and metrics
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+      sla:
+        http.server.requests: 10ms, 50ms, 100ms, 200ms, 500ms
+
+# Logging configuration
+logging:
+  level:
+    com.finrisk.ai.caseservice: ${LOG_LEVEL:INFO}
+    org.springframework.data.r2dbc: DEBUG
+    org.springframework.security: INFO
+    org.springframework.kafka: INFO
+    reactor.netty.http.server: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+
+# OpenAPI/Swagger configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+  info:
+    title: FinRisk Case Service API
+    description: Reactive microservice for managing fraud and compliance investigation cases
+    version: 1.0.0
+    contact:
+      name: FinRisk AI Labs
+      url: https://github.com/micromanikandan/finrisk-ai-copilot
+      email: support@finrisk.ai
+
+# Application-specific configuration
+finrisk:
+  case:
+    # Case number generation settings
+    number:
+      sequence-cache-ttl: PT400H # 400 hours (13+ months)
+    
+    # Case validation settings
+    validation:
+      max-title-length: 255
+      max-description-length: 5000
+      max-tags: 20
+      max-tag-length: 50
+    
+    # Case lifecycle settings
+    lifecycle:
+      auto-close-after-days: 365
+      escalation-threshold-days: 30
+      overdue-threshold-days: 7
+    
+    # Audit settings
+    audit:
+      retention-days: 2555 # 7 years
+      enable-detailed-logging: true
+  
+  # Multi-tenancy settings
+  tenant:
+    default-cell: "default"
+    isolation-level: "strict"
+  
+  # Security settings
+  security:
+    cors:
+      allowed-origins: "*"
+      allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+      allowed-headers: "*"
+      max-age: 3600
+
+---
+# Development profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  # Enable development features
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+
+logging:
+  level:
+    com.finrisk.ai.caseservice: DEBUG
+    org.springframework.data.r2dbc: DEBUG
+    org.springframework.security: DEBUG
+
+---
+# Production profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  # Production database settings
+  r2dbc:
+    pool:
+      initial-size: 20
+      max-size: 100
+      max-idle-time: 10m
+
+  # Production Redis settings
+  data:
+    redis:
+      lettuce:
+        pool:
+          max-active: 50
+          max-idle: 20
+
+logging:
+  level:
+    com.finrisk.ai.caseservice: INFO
+    org.springframework.data.r2dbc: WARN
+    org.springframework.security: WARN
+  file:
+    name: /var/log/finrisk/case-service.log
+
+finrisk:
+  security:
+    cors:
+      allowed-origins: "https://app.finrisk.ai,https://admin.finrisk.ai"
+
+---
+# Docker profile
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  r2dbc:
+    url: r2dbc:postgresql://postgres:5432/case_service
+  
+  flyway:
+    url: jdbc:postgresql://postgres:5432/case_service
+  
+  data:
+    redis:
+      host: redis
+  
+  kafka:
+    bootstrap-servers: kafka:29092

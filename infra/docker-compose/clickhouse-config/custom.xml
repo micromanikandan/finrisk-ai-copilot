@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<clickhouse>
+    <profiles>
+        <default>
+            <max_memory_usage>10000000000</max_memory_usage>
+            <use_uncompressed_cache>0</use_uncompressed_cache>
+            <load_balancing>random</load_balancing>
+        </default>
+    </profiles>
+    
+    <users>
+        <finrisk>
+            <password>finrisk</password>
+            <networks incl="networks_config"/>
+            <profile>default</profile>
+            <quota>default</quota>
+            <databases>
+                <database>finrisk_analytics</database>
+            </databases>
+        </finrisk>
+    </users>
+    
+    <networks_config>
+        <ip>::/0</ip>
+    </networks_config>
+    
+    <!-- Enable Kafka engine for streaming analytics -->
+    <kafka>
+        <auto_offset_reset>earliest</auto_offset_reset>
+        <enable_auto_commit>true</enable_auto_commit>
+    </kafka>
+    
+    <!-- Custom settings for analytics workloads -->
+    <settings>
+        <max_concurrent_queries>100</max_concurrent_queries>
+        <max_server_memory_usage>0</max_server_memory_usage>
+        <uncompressed_cache_size>8589934592</uncompressed_cache_size>
+        <mark_cache_size>5368709120</mark_cache_size>
+    </settings>
+</clickhouse>

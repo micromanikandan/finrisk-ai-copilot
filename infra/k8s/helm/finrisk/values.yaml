@@ -1,0 +1,548 @@
+# FinRisk AI Copilot - Helm Chart Values
+# Production-grade configuration for Kubernetes deployment
+
+# Global configuration
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+  postgresql:
+    auth:
+      postgresPassword: "finrisk-postgres-password"
+      username: "finrisk"
+      password: "finrisk-password"
+      database: "finrisk"
+  redis:
+    auth:
+      enabled: true
+      password: "finrisk-redis-password"
+
+# Application configuration
+app:
+  name: finrisk
+  namespace: finrisk
+  environment: production
+  
+  # Resource limits and requests
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+# Case Service configuration
+caseService:
+  enabled: true
+  name: case-service
+  image:
+    repository: finrisk/case-service
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 3
+  
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+  
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    hosts:
+      - host: api.finrisk.ai
+        paths:
+          - path: /api/v1/cases
+            pathType: Prefix
+    tls:
+      - secretName: finrisk-tls
+        hosts:
+          - api.finrisk.ai
+  
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  
+  env:
+    - name: SPRING_PROFILES_ACTIVE
+      value: "kubernetes"
+    - name: DATABASE_URL
+      value: "postgresql://finrisk-postgresql:5432/finrisk"
+    - name: REDIS_HOST
+      value: "finrisk-redis-master"
+    - name: KAFKA_BOOTSTRAP_SERVERS
+      value: "finrisk-kafka:9092"
+
+# Ingestion Service configuration
+ingestionService:
+  enabled: true
+  name: ingestion-service
+  image:
+    repository: finrisk/ingestion-service
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 2
+  
+  service:
+    type: ClusterIP
+    port: 8081
+    targetPort: 8081
+  
+  ingress:
+    enabled: true
+    className: "nginx"
+    hosts:
+      - host: api.finrisk.ai
+        paths:
+          - path: /api/v1/ingestion
+            pathType: Prefix
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+# ML Scoring Service configuration
+mlScoringService:
+  enabled: true
+  name: ml-scoring-service
+  image:
+    repository: finrisk/ml-scoring-service
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 3
+  
+  service:
+    type: ClusterIP
+    port: 8082
+    targetPort: 8082
+  
+  ingress:
+    enabled: true
+    className: "nginx"
+    hosts:
+      - host: api.finrisk.ai
+        paths:
+          - path: /api/v1/scoring
+            pathType: Prefix
+  
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
+
+# Search Service configuration
+searchService:
+  enabled: true
+  name: search-service
+  image:
+    repository: finrisk/search-service
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 2
+  
+  service:
+    type: ClusterIP
+    port: 8083
+    targetPort: 8083
+  
+  ingress:
+    enabled: true
+    className: "nginx"
+    hosts:
+      - host: api.finrisk.ai
+        paths:
+          - path: /api/v1/search
+            pathType: Prefix
+  
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+# Copilot Orchestrator configuration
+copilotService:
+  enabled: true
+  name: copilot-orchestrator
+  image:
+    repository: finrisk/copilot-orchestrator
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 2
+  
+  service:
+    type: ClusterIP
+    port: 8084
+    targetPort: 8084
+  
+  ingress:
+    enabled: true
+    className: "nginx"
+    hosts:
+      - host: api.finrisk.ai
+        paths:
+          - path: /api/v1/chat
+            pathType: Prefix
+  
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+# Rules Service configuration
+rulesService:
+  enabled: true
+  name: rules-service
+  image:
+    repository: finrisk/rules-service
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 2
+  
+  service:
+    type: ClusterIP
+    port: 8085
+    targetPort: 8085
+  
+  ingress:
+    enabled: true
+    className: "nginx"
+    hosts:
+      - host: api.finrisk.ai
+        paths:
+          - path: /api/v1/rules
+            pathType: Prefix
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+# Entity Service configuration
+entityService:
+  enabled: true
+  name: entity-service
+  image:
+    repository: finrisk/entity-service
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 2
+  
+  service:
+    type: ClusterIP
+    port: 8086
+    targetPort: 8086
+  
+  ingress:
+    enabled: true
+    className: "nginx"
+    hosts:
+      - host: api.finrisk.ai
+        paths:
+          - path: /api/v1/entities
+            pathType: Prefix
+  
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+# Gateway BFF configuration
+gatewayBff:
+  enabled: true
+  name: gateway-bff
+  image:
+    repository: finrisk/gateway-bff
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  
+  replicaCount: 3
+  
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+  
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    hosts:
+      - host: app.finrisk.ai
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: finrisk-app-tls
+        hosts:
+          - app.finrisk.ai
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+# PostgreSQL configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "finrisk-postgres-password"
+    username: "finrisk"
+    password: "finrisk-password"
+    database: "finrisk"
+  
+  primary:
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: "fast-ssd"
+    
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "1000m"
+      limits:
+        memory: "4Gi"
+        cpu: "2000m"
+  
+  readReplicas:
+    replicaCount: 2
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: "fast-ssd"
+
+# Redis configuration
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "finrisk-redis-password"
+  
+  master:
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: "fast-ssd"
+    
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+  
+  replica:
+    replicaCount: 2
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: "fast-ssd"
+
+# Kafka configuration
+kafka:
+  enabled: true
+  
+  broker:
+    replicaCount: 3
+    persistence:
+      enabled: true
+      size: 100Gi
+      storageClass: "fast-ssd"
+    
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "1000m"
+      limits:
+        memory: "4Gi"
+        cpu: "2000m"
+  
+  zookeeper:
+    enabled: true
+    replicaCount: 3
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: "fast-ssd"
+
+# OpenSearch configuration
+opensearch:
+  enabled: true
+  
+  clusterName: "finrisk-opensearch"
+  nodeGroup: "master"
+  
+  replicas: 3
+  
+  persistence:
+    enabled: true
+    size: 200Gi
+    storageClass: "fast-ssd"
+  
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1000m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
+  
+  config:
+    opensearch.yml: |
+      cluster.name: finrisk-opensearch
+      network.host: 0.0.0.0
+      plugins.security.disabled: false
+      discovery.seed_hosts: opensearch-cluster-master-headless
+      cluster.initial_master_nodes: opensearch-cluster-master-0,opensearch-cluster-master-1,opensearch-cluster-master-2
+
+# Neo4j configuration
+neo4j:
+  enabled: true
+  
+  neo4j:
+    name: "finrisk-neo4j"
+    edition: "community"
+    acceptLicenseAgreement: "yes"
+    
+    resources:
+      cpu: "1000m"
+      memory: "2Gi"
+    
+    persistence:
+      size: "100Gi"
+      storageClass: "fast-ssd"
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      labels:
+        app: finrisk
+  
+  grafana:
+    enabled: true
+    adminPassword: "finrisk-grafana-admin"
+    
+    dashboards:
+      enabled: true
+      configMapName: finrisk-dashboards
+  
+  jaeger:
+    enabled: true
+    
+    collector:
+      service:
+        type: ClusterIP
+        grpcPort: 14250
+        httpPort: 14268
+
+# Security configuration
+security:
+  podSecurityPolicy:
+    enabled: true
+  
+  networkPolicy:
+    enabled: true
+  
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+
+# Autoscaling configuration
+autoscaling:
+  enabled: true
+  
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  
+  vpa:
+    enabled: false
+
+# Storage configuration
+storage:
+  storageClass: "fast-ssd"
+  
+  volumes:
+    models:
+      size: "50Gi"
+    logs:
+      size: "20Gi"
+    temp:
+      size: "10Gi"
+
+# Backup configuration
+backup:
+  enabled: true
+  
+  postgresql:
+    enabled: true
+    schedule: "0 2 * * *"  # Daily at 2 AM
+    retention: "30d"
+  
+  neo4j:
+    enabled: true
+    schedule: "0 3 * * *"  # Daily at 3 AM
+    retention: "30d"
+
+# External services configuration
+external:
+  opa:
+    enabled: true
+    url: "http://opa-service:8181"
+  
+  vault:
+    enabled: false
+    url: "https://vault.company.com"
+  
+  auth0:
+    enabled: false
+    domain: "finrisk.auth0.com"

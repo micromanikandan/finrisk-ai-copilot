@@ -1,0 +1,252 @@
+{{- if .Values.caseService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.caseService.name }}
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    app: {{ .Values.caseService.name }}
+    component: api
+    version: {{ .Values.caseService.image.tag }}
+    helm.sh/chart: {{ include "finrisk.chart" . }}
+    app.kubernetes.io/name: {{ include "finrisk.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.caseService.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.caseService.name }}
+      app.kubernetes.io/name: {{ include "finrisk.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/actuator/prometheus"
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+      labels:
+        app: {{ .Values.caseService.name }}
+        component: api
+        version: {{ .Values.caseService.image.tag }}
+        app.kubernetes.io/name: {{ include "finrisk.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ include "finrisk.serviceAccountName" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: {{ .Values.caseService.name }}
+        image: "{{ .Values.caseService.image.repository }}:{{ .Values.caseService.image.tag }}"
+        imagePullPolicy: {{ .Values.caseService.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: management
+          containerPort: 8081
+          protocol: TCP
+        env:
+        {{- range .Values.caseService.env }}
+        - name: {{ .name }}
+          value: {{ .value | quote }}
+        {{- end }}
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: finrisk-secrets
+              key: postgres-password
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: finrisk-secrets
+              key: redis-password
+        envFrom:
+        - configMapRef:
+            name: finrisk-config
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: management
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: management
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: management
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
+        resources:
+          {{- toYaml .Values.caseService.resources | nindent 12 }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: logs
+          mountPath: /var/log/finrisk
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: logs
+        emptyDir: {}
+      {{- with .Values.app.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.app.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.app.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.caseService.name }}
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    app: {{ .Values.caseService.name }}
+    component: api
+    helm.sh/chart: {{ include "finrisk.chart" . }}
+    app.kubernetes.io/name: {{ include "finrisk.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+spec:
+  type: {{ .Values.caseService.service.type }}
+  ports:
+  - port: {{ .Values.caseService.service.port }}
+    targetPort: {{ .Values.caseService.service.targetPort }}
+    protocol: TCP
+    name: http
+  selector:
+    app: {{ .Values.caseService.name }}
+    app.kubernetes.io/name: {{ include "finrisk.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
+{{- if .Values.caseService.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.caseService.name }}
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    app: {{ .Values.caseService.name }}
+    component: api
+    helm.sh/chart: {{ include "finrisk.chart" . }}
+    app.kubernetes.io/name: {{ include "finrisk.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    {{- with .Values.caseService.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if .Values.caseService.ingress.className }}
+  ingressClassName: {{ .Values.caseService.ingress.className }}
+  {{- end }}
+  {{- if .Values.caseService.ingress.tls }}
+  tls:
+    {{- range .Values.caseService.ingress.tls }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ . | quote }}
+        {{- end }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.caseService.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ $.Values.caseService.name }}
+                port:
+                  number: {{ $.Values.caseService.service.port }}
+          {{- end }}
+    {{- end }}
+{{- end }}
+---
+{{- if .Values.autoscaling.hpa.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Values.caseService.name }}
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    app: {{ .Values.caseService.name }}
+    component: api
+    helm.sh/chart: {{ include "finrisk.chart" . }}
+    app.kubernetes.io/name: {{ include "finrisk.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Values.caseService.name }}
+  minReplicas: {{ .Values.autoscaling.hpa.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.hpa.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.autoscaling.hpa.targetCPUUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.autoscaling.hpa.targetMemoryUtilizationPercentage }}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+      - type: Pods
+        value: 2
+        periodSeconds: 60
+      selectPolicy: Max
+{{- end }}
+{{- end }}

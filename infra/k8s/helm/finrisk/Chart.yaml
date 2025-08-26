@@ -1,0 +1,44 @@
+apiVersion: v2
+name: finrisk
+description: FinRisk AI Copilot - Helm chart for production deployment
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+home: https://github.com/micromanikandan/finrisk-ai-copilot
+sources:
+  - https://github.com/micromanikandan/finrisk-ai-copilot
+maintainers:
+  - name: Manikandan Bala
+    email: manikandan@finrisk.ai
+    url: https://www.linkedin.com/in/manikandanbala/
+keywords:
+  - fintech
+  - financial-crime
+  - fraud-detection
+  - aml
+  - ai
+  - kubernetes
+dependencies:
+  - name: postgresql
+    version: "12.12.10"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: "18.4.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+  - name: kafka
+    version: "26.8.5"
+    repository: https://charts.bitnami.com/bitnami
+    condition: kafka.enabled
+  - name: opensearch
+    version: "2.15.0"
+    repository: https://opensearch-project.github.io/helm-charts/
+    condition: opensearch.enabled
+  - name: neo4j
+    version: "5.15.0"
+    repository: https://helm.neo4j.com/neo4j
+    condition: neo4j.enabled
+annotations:
+  category: Application
+  licenses: MIT

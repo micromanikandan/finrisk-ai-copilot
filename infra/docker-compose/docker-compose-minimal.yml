@@ -1,0 +1,38 @@
+networks:
+  finrisk-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+
+services:
+  # Essential Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: finrisk-postgres-demo
+    environment:
+      POSTGRES_DB: finrisk
+      POSTGRES_USER: finrisk
+      POSTGRES_PASSWORD: finrisk123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - finrisk-network
+    restart: unless-stopped
+
+  # Essential Cache
+  redis:
+    image: redis:7-alpine
+    container_name: finrisk-redis-demo
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - finrisk-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes

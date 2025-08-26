@@ -1,0 +1,74 @@
+# --- OS / Editor ---
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+*.iml
+
+# --- Java / Maven / Gradle ---
+target/
+build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+.venv/
+venv/
+env/
+*.egg-info/
+*.ipynb_checkpoints/
+
+# --- Node (if frontend/React) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# --- Terraform ---
+*.tfstate
+*.tfstate.*
+.crash
+.terraform/
+.terraform.lock.hcl
+
+# --- Docker ---
+*.pid
+*.seed
+*.log
+docker-compose.override.yml
+
+# --- Secrets ---
+.env
+*.key
+*.pem
+*.crt
+*.der
+secrets.yaml
+
+# --- Logs & Temp ---
+logs/
+*.log
+*.out
+*.tmp
+*.bak
+*.swp
+
+# --- Coverage / Testing ---
+coverage/
+htmlcov/
+.pytest_cache/
+.cache/
+.jacoco/

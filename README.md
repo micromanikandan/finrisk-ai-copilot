@@ -68,56 +68,54 @@ finrisk/
 
 ## 🚀 Quickstart (Local Dev)
 
-### 1) Prereqs
+> 📘 **Quick Setup**: See [QUICKSTART.md](docs/QUICKSTART.md) for detailed setup instructions
 
-* macOS with **Docker Desktop** (or Colima), **Git**, **Homebrew**
-* **Java 21**, **Python 3.11+**, **Node 20+** (if using BFF)
-
-### 2) Spin up core infra
-
-Create `.env` from sample, then:
+### 1) One-Command Setup
 
 ```bash
-cd infra/docker-compose
-cp .env.example .env
-# Bring up Kafka + Postgres + Redis + Kafdrop + OpenSearch (optional) + ClickHouse (optional)
-docker compose up -d
+# Clone and setup everything
+git clone https://github.com/micromanikandan/finrisk-ai-copilot.git
+cd finrisk-ai-copilot
+make setup
 ```
 
-Services exposed (defaults):
-
-* Postgres → `localhost:5432` (`finrisk/finrisk`)
-* Redis → `localhost:6379`
-* Kafka → `localhost:9092` (KRaft) + Kafdrop UI → `localhost:19000`
-* OpenSearch → `localhost:9200`
-* ClickHouse → `localhost:8123`
-
-### 3) Run services (dev mode)
-
-**Case Service (WebFlux)**
+### 2) Start Infrastructure
 
 ```bash
-cd apps/case-service
-./mvnw spring-boot:run
+make start
 ```
 
-**ML Scoring (FastAPI)**
+### 3) Start Application Services
+
+Open three terminals and run:
 
 ```bash
-cd apps/ml-scoring
-poetry install
-poetry run uvicorn app.main:app --reload --port 8081
+# Terminal 1 - Case Service (Java/Spring WebFlux)
+make dev-case
+
+# Terminal 2 - Ingestion Service (FastAPI)
+make dev-ingestion
+
+# Terminal 3 - ML Scoring Service (FastAPI + SHAP)
+make dev-ml
 ```
 
-**Copilot Orchestrator (LangGraph)**
+### 4) Access Services
 
-```bash
-cd apps/copilot-orchestrator
-poetry install
-poetry run python -m app.main
-```
+* **Case Service API**: http://localhost:8080/swagger-ui.html
+* **Ingestion Service API**: http://localhost:8081/docs  
+* **ML Scoring Service API**: http://localhost:8082/docs
+* **Kafka UI (Kafdrop)**: http://localhost:19000
+* **OpenSearch Dashboards**: http://localhost:5601
+* **Neo4j Browser**: http://localhost:7474
 
-> Tip: Use **Cursor AI IDE** repo prompt (in `.cursor/rules`) to auto‑scaffold modules following the structure above.
+### Prerequisites
+
+* **Docker Desktop** (8GB+ RAM) or **Colima**
+* **Java 21**, **Python 3.11+**, **Poetry**, **Make**
+* **Git** for version control
+
+> 💡 **Tip**: Run `make help` to see all available development commands.
 
 ---
 
