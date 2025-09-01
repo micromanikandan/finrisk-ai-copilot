@@ -131,11 +131,9 @@ Experience the complete FinRisk AI Copilot interface with mock data:
 **🔧 No Backend Required:** Works standalone for demos and development
 
 #### 🖼️ UI Screenshot
+<img width="2549" height="1306" alt="image" src="https://github.com/user-attachments/assets/07e34e82-41bb-4b4c-a852-9fd1f3913a2e" />
 
-<div align="center">
-  <img src="https://github.com/micromanikandan/finrisk-ai-copilot/assets/ui-screenshot.png" alt="FinRisk AI Copilot Dashboard" width="800" style="border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"/>
-  <p><em>FinRisk AI Copilot Dashboard - Modern interface for financial crime investigation</em></p>
-</div>
+
 
 ### Prerequisites
 
