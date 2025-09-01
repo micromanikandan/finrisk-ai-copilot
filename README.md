@@ -109,6 +109,34 @@ make dev-ml
 * **OpenSearch Dashboards**: http://localhost:5601
 * **Neo4j Browser**: http://localhost:7474
 
+### 5) 🎨 Run the UI Demo (Optional - Fastest Way to See the Full Interface)
+
+Experience the complete FinRisk AI Copilot interface with mock data:
+
+```bash
+# Run the interactive UI demo
+./scripts/run-ui-demo.sh
+```
+
+**🚀 What you'll see:**
+- **Modern Dashboard**: Real-time metrics, case statistics, and risk indicators
+- **Case Management**: Full CRUD interface for investigation cases
+- **AI Copilot Chat**: Interactive assistant for investigation queries
+- **Advanced Search**: Multi-faceted search across entities and transactions
+- **Risk Analytics**: Comprehensive charts and trend analysis
+- **Alert Management**: Real-time alert monitoring and handling
+
+**📱 Access:** http://localhost:3000 (auto-opens)
+**⚡ Features:** All UI components with realistic mock data
+**🔧 No Backend Required:** Works standalone for demos and development
+
+#### 🖼️ UI Screenshot
+
+<div align="center">
+  <img src="https://github.com/micromanikandan/finrisk-ai-copilot/assets/ui-screenshot.png" alt="FinRisk AI Copilot Dashboard" width="800" style="border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"/>
+  <p><em>FinRisk AI Copilot Dashboard - Modern interface for financial crime investigation</em></p>
+</div>
+
 ### Prerequisites
 
 * **Docker Desktop** (8GB+ RAM) or **Colima**

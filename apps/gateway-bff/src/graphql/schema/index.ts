@@ -1,158 +1,297 @@
-/**
- * GraphQL Schema - Unified API for FinRisk services
- */
+import { gql } from 'graphql-tag'
 
-import { mergeTypeDefs } from '@graphql-tools/merge';
-import { caseTypeDefs } from './case.graphql';
-import { searchTypeDefs } from './search.graphql';
-import { mlScoringTypeDefs } from './ml-scoring.graphql';
-import { rulesTypeDefs } from './rules.graphql';
-import { ingestionTypeDefs } from './ingestion.graphql';
-import { copilotTypeDefs } from './copilot.graphql';
-import { entityTypeDefs } from './entity.graphql';
-import { userTypeDefs } from './user.graphql';
-
-// Base schema with common types
-const baseTypeDefs = `#graphql
+export const typeDefs = gql`
   scalar DateTime
   scalar JSON
-  scalar Upload
 
-  type Query {
-    # Health check
-    health: String!
+  # Dashboard Types
+  type CaseStatistics {
+    totalCases: Int!
+    openCases: Int!
+    inProgressCases: Int!
+    closedCases: Int!
+    highPriorityCases: Int!
+    averageResolutionTime: Float!
   }
 
-  type Mutation {
-    # Placeholder - actual mutations defined in service schemas
-    _placeholder: String
+  type RiskMetrics {
+    highRiskTransactions: Int!
+    suspiciousPatterns: Int!
+    mlAlertsGenerated: Int!
+    falsePositiveRate: Float!
   }
 
-  type Subscription {
-    # Real-time updates
-    _placeholder: String
+  type SystemHealth {
+    uptime: Float!
+    processingSpeed: Float!
+    errorRate: Float!
+    activeUsers: Int!
   }
 
-  # Common interfaces
-  interface Node {
+  type Alert {
     id: ID!
+    type: String!
+    severity: String!
+    message: String!
+    timestamp: DateTime!
+    caseId: String
+    entityId: String
+    status: String!
+    metadata: JSON
   }
 
-  interface Timestamped {
+  type Dashboard {
+    caseStatistics: CaseStatistics!
+    riskMetrics: RiskMetrics!
+    systemHealth: SystemHealth!
+    recentAlerts: [Alert!]!
+  }
+
+  # Case Types
+  enum CaseStatus {
+    OPEN
+    IN_PROGRESS
+    CLOSED
+    ESCALATED
+    ON_HOLD
+  }
+
+  enum CaseType {
+    MONEY_LAUNDERING
+    FRAUD
+    SANCTIONS
+    TERRORIST_FINANCING
+    OTHER
+  }
+
+  enum Priority {
+    LOW
+    MEDIUM
+    HIGH
+    CRITICAL
+  }
+
+  type User {
+    id: ID!
+    name: String!
+    email: String!
+    role: String!
+    avatar: String
+  }
+
+  type Case {
+    id: ID!
+    caseNumber: String!
+    type: CaseType!
+    status: CaseStatus!
+    priority: Priority!
+    title: String!
+    description: String
+    createdAt: DateTime!
+    updatedAt: DateTime!
+    assignedTo: User
+    createdBy: User!
+    tags: [String!]!
+    riskScore: Float
+    metadata: JSON
+  }
+
+  # Entity Types
+  type Entity {
+    id: ID!
+    name: String!
+    type: String!
+    riskScore: Float
+    attributes: JSON!
+    relationships: [EntityRelationship!]!
+    cases: [Case!]!
     createdAt: DateTime!
     updatedAt: DateTime!
   }
 
-  interface TenantScoped {
-    tenantId: String!
-    cellId: String!
-  }
-
-  # Common enums
-  enum SortOrder {
-    ASC
-    DESC
-  }
-
-  enum Status {
-    ACTIVE
-    INACTIVE
-    PENDING
-    COMPLETED
-    FAILED
-    CANCELLED
-  }
-
-  # Pagination types
-  type PageInfo {
-    hasNextPage: Boolean!
-    hasPreviousPage: Boolean!
-    startCursor: String
-    endCursor: String
-    totalCount: Int!
-  }
-
-  input PaginationInput {
-    first: Int
-    after: String
-    last: Int
-    before: String
-  }
-
-  # Error types
-  type Error {
-    code: String!
-    message: String!
-    path: [String!]
-    extensions: JSON
-  }
-
-  type ValidationError {
-    field: String!
-    message: String!
-    code: String!
-  }
-
-  # Response wrapper types
-  type SuccessResponse {
-    success: Boolean!
-    message: String
-  }
-
-  type ErrorResponse {
-    success: Boolean!
-    errors: [Error!]!
-  }
-
-  # Generic filter input
-  input FilterInput {
-    field: String!
-    operator: FilterOperator!
-    value: String!
-  }
-
-  enum FilterOperator {
-    EQUALS
-    NOT_EQUALS
-    CONTAINS
-    NOT_CONTAINS
-    STARTS_WITH
-    ENDS_WITH
-    GREATER_THAN
-    GREATER_THAN_OR_EQUAL
-    LESS_THAN
-    LESS_THAN_OR_EQUAL
-    IN
-    NOT_IN
-    IS_NULL
-    IS_NOT_NULL
-  }
-
-  # Metrics and analytics
-  type Metric {
-    name: String!
-    value: Float!
-    unit: String
-    timestamp: DateTime!
+  type EntityRelationship {
+    id: ID!
+    fromEntity: Entity!
+    toEntity: Entity!
+    relationshipType: String!
+    strength: Float!
     metadata: JSON
   }
 
-  type Analytics {
-    totalItems: Int!
-    timeRange: String!
-    metrics: [Metric!]!
-    trends: JSON
+  # Search Types
+  type SearchResult {
+    type: String!
+    id: ID!
+    title: String!
+    description: String
+    relevanceScore: Float!
+    metadata: JSON
   }
-`;
 
-export const typeDefs = mergeTypeDefs([
-  baseTypeDefs,
-  caseTypeDefs,
-  searchTypeDefs,
-  mlScoringTypeDefs,
-  rulesTypeDefs,
-  ingestionTypeDefs,
-  copilotTypeDefs,
-  entityTypeDefs,
-  userTypeDefs,
-]);
+  type SearchResponse {
+    results: [SearchResult!]!
+    totalCount: Int!
+    aggregations: JSON
+    suggestions: [String!]!
+  }
+
+  # AI Types
+  type AIInsight {
+    id: ID!
+    type: String!
+    title: String!
+    description: String!
+    confidence: Float!
+    priority: String!
+    timestamp: DateTime!
+    recommendations: [String!]!
+    metadata: JSON
+  }
+
+  type MLModel {
+    modelName: String!
+    version: String!
+    status: String!
+    accuracy: Float
+    lastUpdated: DateTime!
+    metrics: JSON
+  }
+
+  type AIRecommendation {
+    id: ID!
+    title: String!
+    description: String!
+    impact: String!
+    effort: String!
+    category: String!
+    estimatedBenefit: String
+  }
+
+  type AIInsights {
+    insights: [AIInsight!]!
+    modelStatuses: [MLModel!]!
+    recommendations: [AIRecommendation!]!
+  }
+
+  # Transaction Types
+  type Transaction {
+    id: ID!
+    amount: Float!
+    currency: String!
+    fromAccount: String!
+    toAccount: String!
+    timestamp: DateTime!
+    type: String!
+    riskScore: Float
+    flags: [String!]!
+    metadata: JSON
+  }
+
+  # Input Types
+  input CaseInput {
+    type: CaseType!
+    priority: Priority!
+    title: String!
+    description: String
+    assignedToId: ID
+    tags: [String!]
+  }
+
+  input SearchInput {
+    query: String!
+    filters: JSON
+    limit: Int = 20
+    offset: Int = 0
+    sortBy: String
+    sortOrder: String = "DESC"
+  }
+
+  input AlertInput {
+    type: String!
+    severity: String!
+    message: String!
+    caseId: String
+    entityId: String
+    metadata: JSON
+  }
+
+  # Query Type
+  type Query {
+    # Dashboard
+    dashboard: Dashboard!
+    
+    # Cases
+    cases(limit: Int = 20, offset: Int = 0, filters: JSON): [Case!]!
+    case(id: ID!): Case
+    casesByStatus(status: CaseStatus!): [Case!]!
+    
+    # Entities
+    entities(limit: Int = 20, offset: Int = 0, filters: JSON): [Entity!]!
+    entity(id: ID!): Entity
+    
+    # Search
+    search(input: SearchInput!): SearchResponse!
+    quickSearch(query: String!): [SearchResult!]!
+    
+    # AI
+    aiInsights: AIInsights!
+    aiChat(message: String!, context: JSON): String!
+    
+    # Transactions
+    transactions(limit: Int = 20, offset: Int = 0, filters: JSON): [Transaction!]!
+    transaction(id: ID!): Transaction
+    
+    # Alerts
+    alerts(limit: Int = 20, offset: Int = 0, filters: JSON): [Alert!]!
+    alert(id: ID!): Alert
+    
+    # System
+    systemHealth: SystemHealth!
+    recentActivity(limit: Int = 10): JSON!
+    
+    # Users
+    users: [User!]!
+    currentUser: User!
+  }
+
+  # Mutation Type
+  type Mutation {
+    # Cases
+    createCase(input: CaseInput!): Case!
+    updateCase(id: ID!, input: CaseInput!): Case!
+    assignCase(caseId: ID!, userId: ID!): Case!
+    closeCase(id: ID!, reason: String!): Case!
+    escalateCase(id: ID!, reason: String!): Case!
+    
+    # Alerts
+    createAlert(input: AlertInput!): Alert!
+    updateAlert(id: ID!, input: AlertInput!): Alert!
+    acknowledgeAlert(id: ID!): Alert!
+    resolveAlert(id: ID!, resolution: String!): Alert!
+    
+    # Entities
+    updateEntityRiskScore(entityId: ID!, riskScore: Float!): Entity!
+    linkEntities(fromEntityId: ID!, toEntityId: ID!, relationshipType: String!): EntityRelationship!
+    
+    # AI
+    trainModel(modelName: String!, trainingData: JSON!): MLModel!
+    deployModel(modelName: String!, version: String!): MLModel!
+    
+    # System
+    refreshData: Boolean!
+    exportData(filters: JSON!, format: String!): String!
+  }
+
+  # Subscription Type
+  type Subscription {
+    # Real-time updates
+    alertCreated: Alert!
+    caseUpdated: Case!
+    systemHealthChanged: SystemHealth!
+    aiInsightGenerated: AIInsight!
+    
+    # Dashboard updates
+    dashboardUpdated: Dashboard!
+    riskMetricsUpdated: RiskMetrics!
+  }
+`
